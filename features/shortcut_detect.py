@@ -2,7 +2,7 @@ import logging
 from pynput.keyboard import Key, Listener
 from .screenshot import ScreenShot
 from .export_sheet import XlxsSheet
-from .models import FULLSCREEN
+from .models import ScreenshotMode
 from gui import ui_constants
 from datetime import datetime
 
@@ -18,7 +18,7 @@ class ShortcutKey:
         self.shortcut_key = shortcut_key
         self.flag = False
         self.listener = Listener(on_press=self.on_press)
-        self.screenshot = ScreenShot(FULLSCREEN)
+        self.screenshot = ScreenShot(ScreenshotMode.FULLSCREEN)
         self.change_info_msg = change_info_callback
         self.xls = xls
 
@@ -39,6 +39,7 @@ class ShortcutKey:
                     f"Failed to take Screenshot at: {datetime.now()}",
                     ui_constants.ERROR,
                 )
+            logging.log(logging.INFO, f"Screenshot taken at: {datetime.now()}")
             self.xls.add_image_to_queue(ss_image)
 
     @staticmethod

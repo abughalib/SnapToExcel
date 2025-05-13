@@ -1,13 +1,16 @@
-FULLSCREEN = "FULLSCREEN"
-WINDOW = "WINDOW"
-MULTIDISPLAY = "MULTIDISPLAY"
-PARTIAL = "PARTIAL"
+from enum import Enum, auto
 
-SCREENSHOT_MODE = (WINDOW, PARTIAL, FULLSCREEN)
+
+class ScreenshotMode(Enum):
+    FULLSCREEN = auto()
+    WINDOW = auto()
+    MULTIDISPLAY = auto()
+    PARTIAL = auto()
+
 
 class ScreenShotRegion:
 
-    def __init__(self, left = 0, top = 0, right = 1920, bottom = 1080):
+    def __init__(self, left=0, top=0, right=1920, bottom=1080):
         self.left = left
         self.right = right
         self.top = top
