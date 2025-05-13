@@ -1,4 +1,4 @@
-from gui import ui
+from gui import ui, tkui
 from features import utils
 import logging
 
@@ -20,6 +20,9 @@ def main():
     )
 
     logging.log(logging.INFO, "---Initializing GUI---")
+
+    ui = tkui.App()
+
     ui.startApp()
 
 
