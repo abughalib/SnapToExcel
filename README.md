@@ -8,8 +8,9 @@ Works on Windows and Linux OS, Not tested on Mac OS.
 
 <details>
     <summary>Show</summary>
-
-    ![image](./screenshots/snapToExcel.png)
+    
+![image](./screenshots/snapToExcel.png)
+    
 </details>
 
 ## Use Cases
