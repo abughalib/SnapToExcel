@@ -3,8 +3,7 @@ import tkinter as tk
 
 class CreateToolTip(object):
 
-    def __init__(self, widget, text="Widget Info"):
-        self.waittime = 500  # miliseconds
+    def __init__(self, widget: tk.Button, text="Widget Info"):
         self.wraplength = 180  # pixels
         self.widget = widget
         self.text = text
@@ -15,20 +14,10 @@ class CreateToolTip(object):
         self.tw = None
 
     def enter(self, event=None):
-        self.schedule()
+        self.showtip()
 
     def leave(self, event=None):
         self.hidetip()
-
-    def schedule(self):
-        self.unschedule()
-        self.id = self.widget.after(self.waittime, self.showtip)
-
-    def unschedule(self):
-        id = self.id
-        self.id = None
-        if id:
-            self.widget.after_cancel(id)
 
     def showtip(self, event=None):
         x = y = 0
@@ -52,8 +41,7 @@ class CreateToolTip(object):
         label.pack(ipadx=1)
 
     def hidetip(self):
-        tw = self.tw
-        self.tw = None
+        if self.tw:
+            self.tw.destroy()
+            self.tw = None
 
-        if tw:
-            tw.destroy()

@@ -706,10 +706,13 @@ class App(tk.Tk):
         webbrowser.open_new(UPDATE_LINK_DOCS)
 
     def _handle_help_about(self):
-        ABOUT_MESSAGE = f"""
-            Version: {APP_VERSION}\
-            Author: {APP_AUTHOR}\
-            Email: {APP_AUTHOR_EMAIL}\
+        ABOUT_MESSAGE = f"""SnapToExcel:
+            
+            \nA Python based tool to automatically create excel sheets from Screenshot and executing SQL queries.
+            
+            \nVersion: {APP_VERSION}\
+            \nAuthor: {APP_AUTHOR}\
+            \nEmail: {APP_AUTHOR_EMAIL}\
         """
 
         showinfo(title=HELP_MENU_ABOUT_LABEL, message=ABOUT_MESSAGE)

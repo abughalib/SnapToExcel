@@ -31,7 +31,7 @@ class Notification:
             notify2.init("SnapToExcel")
             notify2.Notification(heading, message, icon=f"{location}").set_timeout(
                 duration
-            ).show()
+            )
 
     @staticmethod
     def send_notification_error(heading: str, message: str, duration=1):
