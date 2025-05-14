@@ -737,48 +737,60 @@ class App(tk.Tk):
         th = threading.Thread(target=self._on_key_release)
         th.start()
 
-    def _on_key_release(self):
+    def _on_key_release(self, event=None):
 
-        lines = self.sql_queries_entry.get(1.0, tk.END).splitlines()
+        import re, tkinter as tk
 
-        regex = re.compile(
-            r"(\b"
-            r"(?P<keyword>ADD|ALL|ALTER|AND|ANY|AS|ASC|BACKUP|BETWEEN|BY|CASE|CHECK|COLUMN|CONSTRAINT|CREATE|DATABASE|DEFAULT|DELETE|DESC|DISTINCT|DROP|EXEC|EXISTS|FOREIGN|FROM|FULL|GROUP|HAVING|IN|INDEX|INNER|INSERT|INTO|IS|JOIN|KEY|LEFT|LIKE|LIMIT|NOT|NULL|ON|OR|ORDER|OUTER|PRIMARY|PROCEDURE|RIGHT|ROWNUM|SELECT|SET|TABLE|TOP|UNION|UNIQUE|UPDATE|VALUES|VIEW|WHERE)"
-            + "|"
-            r"(?P<identifier>[a-zA-Z_][a-zA-Z0-9_]*)" + "|"  # SQL identifiers
-            r"(?P<operator>=|<>|<|>|<=|>=|\+|\-|\*|/|\|\||%)" + "|"  # SQL operators
-            r"(?P<number>\d+)" + "|"  # SQL numbers
-            r"(?P<string>'(?:[^'\\]|\\')*')" + "|"  # SQL strings
-            r"(?P<variable>(?!ADD|ALL|ALTER|AND|ANY|AS|ASC|BACKUP|BETWEEN|BY|CASE|CHECK|COLUMN|CONSTRAINT|CREATE|DATABASE|DEFAULT|DELETE|DESC|DISTINCT|DROP|EXEC|EXISTS|FOREIGN|FROM|FULL|GROUP|HAVING|IN|INDEX|INNER|INSERT|INTO|IS|JOIN|KEY|LEFT|LIKE|LIMIT|NOT|NULL|ON|OR|ORDER|OUTER|PRIMARY|PROCEDURE|RIGHT|ROWNUM|SELECT|SET|TABLE|TOP|UNION|UNIQUE|UPDATE|VALUES|VIEW|WHERE)[a-zA-Z_][a-zA-Z0-9_]*)"  # SQL variables (excluding keywords)
-            r"\b)"
-        )
+        text_widget = self.sql_queries_entry
 
-        for idx, line in enumerate(lines):
+        content = text_widget.get("1.0", tk.END)
 
-            keyword_tag = f"keyword_{idx}"
-            identifier_tag = f"identifier_{idx}"
-            operator_tag = f"operator_{idx}"
-            number_tag = f"number_{idx}"
-            string_tag = f"string_{idx}"
-            tags = {
-                keyword_tag: "blue",
-                identifier_tag: "black",
-                operator_tag: "red",
-                number_tag: "green",
-                string_tag: "orange",
-                # add new tag here
-            }
-            self.configure_tags(tags)
+        for tag in text_widget.tag_names():
+            text_widget.tag_remove(tag, "1.0", tk.END)
 
-            for match in regex.finditer(line.upper()):
-                for tag in tags:
-                    group_name = tag.split("_")[0]
-                    if -1 != match.start(group_name):
-                        self.sql_queries_entry.tag_add(
-                            tag,
-                            "{0}.{1}".format(idx + 1, match.start(group_name)),
-                            "{0}.{1}".format(idx + 1, match.end(group_name)),
-                        )
+        styles = {
+            "comment": {
+                "foreground": "#006400",
+                "font": ("Consolas", 10, "italic"),
+            },  # dark green
+            "string": {"foreground": "#C7601A"},  # deep orange
+            "keyword": {
+                "foreground": "#00008B",
+                "font": ("Consolas", 10, "bold"),
+            },  # dark blue
+            "function": {"foreground": "#008B8B"},  # dark cyan
+            "operator": {"foreground": "#555555"},  # dark gray
+            "number": {"foreground": "#004B23"},  # darker green
+            "punctuation": {"foreground": "#333333"},  # very dark gray
+            "identifier": {"foreground": "#000000"},  # pure black
+        }
+        for tag, cfg in styles.items():
+            text_widget.tag_configure(tag, **cfg)
+
+        patterns = [
+            (re.compile(r"--.*?$", re.MULTILINE), "comment"),
+            (re.compile(r"/\*.*?\*/", re.DOTALL), "comment"),
+            (re.compile(r"'(?:[^'\\]|\\.)*'"), "string"),
+            (
+                re.compile(
+                    r"\b(ADD|ALL|ALTER|AND|ANY|AS|ASC|BACKUP|BETWEEN|BY|CASE|CHECK|COLUMN|CONSTRAINT|CREATE|DATABASE|DEFAULT|DELETE|DESC|DISTINCT|DROP|EXEC|EXISTS|FOREIGN|FROM|FULL|GROUP|HAVING|IN|INDEX|INNER|INSERT|INTO|IS|JOIN|KEY|LEFT|LIKE|LIMIT|NOT|NULL|ON|OR|ORDER|OUTER|PRIMARY|PROCEDURE|RIGHT|ROWNUM|SELECT|SET|TABLE|TOP|UNION|UNIQUE|UPDATE|VALUES|VIEW|WHERE)\b",
+                    re.IGNORECASE,
+                ),
+                "keyword",
+            ),
+            (re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(?=\()"), "function"),
+            (re.compile(r"=|<>|<|>|<=|>=|\+|\-|\*|/|\|\||%"), "operator"),
+            (re.compile(r"\b\d+\b"), "number"),
+            (re.compile(r"[(),.;]"), "punctuation"),
+            (re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b"), "identifier"),
+        ]
+
+        for regex, tag in patterns:
+            for match in regex.finditer(content):
+                start, end = match.start(), match.end()
+                start_index = text_widget.index(f"1.0+{start}c")
+                end_index = text_widget.index(f"1.0+{end}c")
+                text_widget.tag_add(tag, start_index, end_index)
 
     @staticmethod
     def generate_name():
