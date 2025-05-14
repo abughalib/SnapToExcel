@@ -77,6 +77,7 @@ def join_path(path: str, file_name: str) -> str:
             f"Path: {path} does not exist, creating it",
             exc_info=True,
         )
+        path = verify_dir_or_get_cur(path)
         os.makedirs(path)
 
     full_path = os.path.join(path, file_name)

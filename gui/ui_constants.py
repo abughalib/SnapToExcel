@@ -128,6 +128,7 @@ CHANGE_SHORTCUT_KEY_BUTTON_LABEL = "Change Shortcut Key"
 STYLE_INFO_LABEL = "info.TLabel"
 STYLE_WARNING_LABEL = "warning.TLabel"
 STYLE_ERROR_LABEL = "error.TLabel"
+STYLE_SUCCESS_LABEL = "success.TLabel"
 
 # LINKS
 HELP_DOCS_VIDEO = "https://www.github.com/abughalib"

@@ -1,4 +1,4 @@
-from gui import ui, tkui
+from gui import tkui
 from features import utils
 import logging
 

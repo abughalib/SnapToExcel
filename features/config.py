@@ -82,7 +82,7 @@ class SnapToExcelConfig:
         logging.log(logging.INFO, "Returning DEFAULT_SHORTCUT_KEY")
         return DEFAULT_SHORTCUT_KEY
 
-    def get_shortcut_key(self, key: Key | KeyCode):
+    def set_shortcut_key(self, key: Key | KeyCode):
         if type(key) == Key:
             logging.log(logging.INFO, f"Setting Shortcut Key to: {str(key.value)}")
             self.config[KEY_SECTION][SHORTCUTKEY_CONFIG] = str(key.value)
@@ -144,12 +144,12 @@ class SnapToExcelConfig:
 
     def get_last_path(self) -> str:
         logging.log(logging.INFO, f"Getting Last Path")
+        last_path = ""
         if PATH_SECTION_CONFIG in self.config[PATH_SECTION]:
-            path = self.config[PATH_SECTION][PATH_SECTION_CONFIG]
-            logging.log(logging.INFO, f"Found Stored Last Path: {path}")
-            return path
+            last_path = self.config[PATH_SECTION][PATH_SECTION_CONFIG]
+            logging.log(logging.INFO, f"Found Stored Last Path: {last_path}")
         logging.log(logging.INFO, "Returning current working directory for Last Path")
-        return verify_dir_or_get_cur()
+        return verify_dir_or_get_cur(last_path)
 
     def set_last_path(self, path: str):
         logging.log(logging.INFO, f"Setting Last Path to: {path}")
@@ -178,6 +178,7 @@ class SnapToExcelConfig:
 
     def get_workbook_start_position(self) -> Tuple[int, str]:
         logging.log(logging.INFO, f"Getting Workbook Start Position")
+        start_position = ""
         if WORKBOOK_START_POSITION in self.config[WORKBOOK_SECTION]:
             start_position = self.config[WORKBOOK_SECTION][WORKBOOK_START_POSITION]
             logging.log(
