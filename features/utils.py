@@ -71,14 +71,15 @@ def get_excel_file_path():
 
 def join_path(path: str, file_name: str) -> str:
     logging.log(logging.INFO, f"Joining Path: {path} and File Name: {file_name}")
-    if not os.path.exists(path):
+    if not verify_dir(path):
         logging.log(
             logging.INFO,
             f"Path: {path} does not exist, creating it",
             exc_info=True,
         )
         path = verify_dir_or_get_cur(path)
-        os.makedirs(path)
+        absolute_path = os.path.abspath(path)
+        os.makedirs(absolute_path, exist_ok=True)
 
     full_path = os.path.join(path, file_name)
     logging.log(logging.INFO, f"Full Path: {full_path}", exc_info=True)
