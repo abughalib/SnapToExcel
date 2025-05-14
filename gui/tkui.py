@@ -649,7 +649,7 @@ class App(tk.Tk):
         if self.xls and not self.xls.saved:
             logging.log(logging.INFO, f"Saving Excel Sheet")
             self.xls.save_sheet()
-        self.saved_config.write_config()
+        self.saved_config.save_config()
 
     def _execute_sql(self):
 
