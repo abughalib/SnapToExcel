@@ -3,7 +3,7 @@ import logging
 
 
 if platform.system() == "Windows":
-    from winotify import notify
+    from win11toast import toast
 
 if platform.system() == "Linux":
     import notify2
@@ -21,7 +21,7 @@ class Notification:
                 f"Sending Toas Message, Heading: {heading}, message: \
                     {message}, location: {location}, duration: {duration}",
             )
-            notify(heading, message, on_click=f"{location}")
+            toast(heading, message, on_click=f"{location}")
         elif platform.system() == "Linux":
             logging.log(
                 logging.INFO,
@@ -41,7 +41,7 @@ class Notification:
                 f"Sending Toas Message, Heading: {heading}, message: \
                     {message}, duration: {duration}",
             )
-            notify(heading, message)
+            toast(heading, message)
 
         elif platform.system() == "Linux":
             logging.log(

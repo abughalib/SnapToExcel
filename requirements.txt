@@ -1,8 +1,6 @@
 cffi~=1.17
 cryptography~=44.0
-dbus-python~=1.4
 evdev~=1.9
-notify2~=0.3
 numpy~=2.2
 oracledb~=3.1
 pandas~=2.2
