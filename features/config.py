@@ -75,7 +75,7 @@ class SnapToExcelConfig:
                 if str_key_code.isalpha():
                     key_code = KeyCode.from_char(str_key_code)
                     return Key(key_code)
-            except Exception as e:
+            except Exception as _:
                 logging.log(logging.ERROR, f"Failed to get SHORTCUT KEY")
                 return DEFAULT_SHORTCUT_KEY
 
@@ -83,7 +83,7 @@ class SnapToExcelConfig:
         return DEFAULT_SHORTCUT_KEY
 
     def set_shortcut_key(self, key: Key | KeyCode):
-        if type(key) == Key:
+        if isinstance(key, Key):
             logging.log(logging.INFO, f"Setting Shortcut Key to: {str(key.value)}")
             self.config[KEY_SECTION][SHORTCUTKEY_CONFIG] = str(key.value)
         else:

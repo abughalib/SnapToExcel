@@ -13,7 +13,7 @@ def get_connection(conn_string: str) -> Connection | None:
     if utils.get_oracle_driver_path():
         logging.log(logging.INFO, "Driver Path Found")
         try:
-            oracledb.init_oracle_client(utils.get_oracle_driver_path())
+            oracledb.init_oracle_client(utils.get_oracle_driver_path())  # type: ignore
         except Exception as e:
             logging.log(logging.ERROR, f"Connection Creation Failed: {e}")
     else:
@@ -32,20 +32,20 @@ def execute_query(conn: Connection, sql_query: str) -> list[list[str]] | None:
     logging.log(logging.INFO, f"Executing Query")
     logging.debug(f"Executing Query: {sql_query}")
 
-    res = []
+    res: list[list[str]] = []
 
     if conn and sql_query.strip():
         cursor: Cursor = conn.cursor()
 
         try:
-            cursor.execute(sql_query)
-            col_names = [i[0] for i in cursor.description]
+            cursor.execute(statement=sql_query)  # type: ignore
+            col_names: list[str] = [row[0] for row in cursor.description]  # type: ignore
 
-            data = deepcopy(cursor.fetchall())
+            data: list[list[str]] = deepcopy(cursor.fetchall())  # type: ignore
 
             res.append([sql_query])
             res.append([])
-            res.appedn(col_names)
+            res.append(col_names)
 
             for row in data:
                 res.append(row)
@@ -62,10 +62,9 @@ def execute_bulk_query(
     logging.log(logging.INFO, f"Executing Bulk Query")
     logging.debug(f"Executing Bulk Query: {sql_queries}")
 
-    res = []
+    res: list[list[list[str]]] = []
 
     if conn and sql_queries:
-        cursor: Cursor = conn.cursor()
 
         for query in sql_queries:
             exec_res = execute_query(conn, query)

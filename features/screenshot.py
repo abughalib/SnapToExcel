@@ -5,7 +5,7 @@ from .models import ScreenShotRegion, ScreenshotMode
 
 class ScreenShot:
 
-    def __init__(self, mode: str, region=ScreenShotRegion):
+    def __init__(self, mode: ScreenshotMode, region: ScreenShotRegion):
         logging.log(logging.INFO, f"Initializing Screenshot: {mode}, Region: {region}")
         self.mode = mode
         self.region = region
@@ -17,7 +17,7 @@ class ScreenShot:
             case ScreenshotMode.FULLSCREEN:
                 try:
                     logging.log(logging.INFO, f"Grabbing {self.mode} screenshot")
-                    self.ss_image = ImageGrab.grab(bbox=False)
+                    self.ss_image = ImageGrab.grab(bbox=None)
                     logging.log(logging.INFO, f"Grabbed {self.mode} screenshot")
                 except Exception as ex:
                     logging.log(

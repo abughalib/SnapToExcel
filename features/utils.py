@@ -389,6 +389,8 @@ def extract_oracle_driver() -> bool:
             return False
         return True
 
+    return False
+
 
 def get_oracle_driver_path() -> str | None:
     logging.log(

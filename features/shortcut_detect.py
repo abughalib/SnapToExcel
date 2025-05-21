@@ -1,28 +1,35 @@
 import logging
-from pynput.keyboard import Key, Listener
-from .screenshot import ScreenShot
-from .export_sheet import XlxsSheet
-from .models import ScreenshotMode
-from gui import ui_constants
 from datetime import datetime
+from collections.abc import Callable
+
+from pynput.keyboard import Key, KeyCode, Listener
+
+from features.screenshot import ScreenShot
+from features.export_sheet import XlxsSheet
+from features.models import ScreenshotMode, ScreenShotRegion, InfoType
 
 
 class ShortcutKey:
     def __init__(
-        self, xls: XlxsSheet, change_info_callback, shortcut_key=Key.f9
+        self,
+        xls: XlxsSheet,
+        change_info_callback: Callable[[str, InfoType], None],
+        shortcut_key: Key = Key.f9,
     ) -> None:
         logging.log(
             logging.INFO,
-            f"Screenshot Initializing Screenshot Key: {shortcut_key} XlsxSheet is None: {xls == None}",
+            f"Screenshot Initializing Screenshot Key: {shortcut_key}",
         )
         self.shortcut_key = shortcut_key
         self.flag = False
         self.listener = Listener(on_press=self.on_press)
-        self.screenshot = ScreenShot(ScreenshotMode.FULLSCREEN)
+        self.screenshot = ScreenShot(
+            ScreenshotMode.FULLSCREEN, region=ScreenShotRegion()
+        )
         self.change_info_msg = change_info_callback
         self.xls = xls
 
-    def on_press(self, key: Key) -> None:
+    def on_press(self, key: Key | KeyCode | None) -> None:
         logging.log(logging.INFO, f"Detected Keypress: {self.shortcut_key}")
         if key == self.shortcut_key:
             logging.log(
@@ -32,12 +39,12 @@ class ShortcutKey:
             ss_image = self.screenshot.get_screenshot()
             if ss_image:
                 self.change_info_msg(
-                    f"Last screenshot taken at: {datetime.now()}", ui_constants.SUCCESS
+                    f"Last screenshot taken at: {datetime.now()}", InfoType.SUCCESS
                 )
             else:
                 self.change_info_msg(
                     f"Failed to take Screenshot at: {datetime.now()}",
-                    ui_constants.ERROR,
+                    InfoType.ERROR,
                 )
             logging.log(logging.INFO, f"Screenshot taken at: {datetime.now()}")
             self.xls.add_image_to_queue(ss_image)
