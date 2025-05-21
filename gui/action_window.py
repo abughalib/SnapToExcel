@@ -58,6 +58,7 @@ class LastFiveActions:
 
                     photo = ImageTk.PhotoImage(img)
                     label = tk.Label(self.scrollable_frame, image=photo)
+                    label.image = photo  # type: ignore Keep a reference to avoid garbage collection
                     label.pack()
 
                 case ACTION_TYPE.CHANGE_SHEET:

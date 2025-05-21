@@ -10,6 +10,7 @@ Works on Windows and Linux OS, Not tested on Mac OS.
     <summary>Show</summary>
     
 ![image](./screenshots/snapToExcel.png)
+![image](./screenshots/snapToExcel_result.png)
     
 </details>
 
