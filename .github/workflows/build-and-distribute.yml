@@ -1,0 +1,55 @@
+name: Build & Distribute SnapToExcel
+
+# Trigger on pushes to main (and also allow manual dispatch)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-package:
+    # Build on both Ubuntu and Windows runners
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: [3.8] # Ensure Python 3.8+
+    steps:
+      # 1. Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Set up the requested Python version
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # 3. Install project dependencies
+      #
+      #    On Linux: install both requirements.txt and requirements.linux.txt
+      #    On Windows: install only requirements.txt (assuming requirements.linux.txt is Linux‐specific).
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            pip install -r requirements.linux.txt
+          fi
+
+      # 4. Run the Cx_Freeze build to produce a standalone executable.
+      - name: Build executable with Cx_Freeze
+        shell: bash
+        run: |
+          # On Windows runners, "bash" still works because GitHub Actions sets up Git Bash.
+          # If your cxfreeze script is named differently, adjust the filename accordingly.
+          python cxfreeze.py build
+
+      # 5. Upload the entire "build/" directory as an artifact.
+      #    The runner creates something like build/exe.win-*/ or build/exe.linux-*/ depending on OS.
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: SnapToExcel-${{ matrix.os }}
+          path: build/
