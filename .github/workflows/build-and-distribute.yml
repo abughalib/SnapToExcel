@@ -6,24 +6,24 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# ⇢ Without write permission, creating tags/releases fails with a 403.
 permissions:
   contents: write
 
 jobs:
   build-and-package:
-    # Build on both Ubuntu and Windows runners
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-        python-version: [ 3.13 ]  # Ensure Python 3.13+
+        python-version: [ 3.13 ]
 
     steps:
       # 1. Check out the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Set up the requested Python version
+      # 2. Set up Python
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -36,9 +36,7 @@ jobs:
           sudo apt update
           sudo apt install -y python3-dev python3-pip build-essential libgtk-3-dev python3-tk
 
-      # 4. Install project dependencies
-      #    On Linux: install both requirements.txt and requirements.linux.txt
-      #    On Windows: install only requirements.txt.
+      # 4. Install Python dependencies
       - name: Install dependencies
         shell: bash
         run: |
@@ -48,22 +46,26 @@ jobs:
             pip install -r requirements.linux.txt
           fi
 
-      # 5. Run the Cx_Freeze build to produce a standalone executable.
+      # 5. Build the standalone executable with Cx_Freeze
       - name: Build executable with Cx_Freeze
         shell: bash
         run: |
           python cxfreeze.py build
 
-      # 6. Upload the entire "build/" directory as an artifact.
-      #    The runner creates something like build/exe.win-*/ or build/exe.linux-*/ depending on OS.
-      - name: Upload built artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: SnapToExcel-${{ matrix.os }}
-          path: build/
+      # 6. Archive (zip) the entire build/ folder into a single, OS-specific ZIP
+      #
+      #    We use a short Python snippet so it works identically on both Linux and Windows.
+      - name: Archive build folder
+        shell: pwsh
+        run: |
+          python - <<EOF
+          import shutil
+          shutil.make_archive("snaptoexcel-${{ matrix.os }}", "zip", "build")
+          EOF
 
-      # 7. Create GitHub Release on push to main
-      - name: Create GitHub Release
+      # 7. Upload that ZIP as a Release asset (one per OS). Because the ZIP filename
+      #    contains ${{ matrix.os }}, you can never get an “already_exists” conflict.
+      - name: Create (or update) GitHub Release & upload ZIP
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'push'
         env:
@@ -72,6 +74,6 @@ jobs:
           tag_name: v1.0.${{ github.run_number }}
           name: Release v1.0.${{ github.run_number }}
           files: |
-            build/**/*
+            snaptoexcel-${{ matrix.os }}.zip
           draft: false
           prerelease: false
