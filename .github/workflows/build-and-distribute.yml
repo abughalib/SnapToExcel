@@ -49,7 +49,7 @@ jobs:
       # 5. Upload the entire "build/" directory as an artifact.
       #    The runner creates something like build/exe.win-*/ or build/exe.linux-*/ depending on OS.
       - name: Upload built artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: SnapToExcel-${{ matrix.os }}
           path: build/
