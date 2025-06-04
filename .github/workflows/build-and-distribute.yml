@@ -3,7 +3,7 @@ name: Build & Distribute SnapToExcel
 # Trigger on pushes to main (and also allow manual dispatch)
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -58,3 +58,17 @@ jobs:
         with:
           name: SnapToExcel-${{ matrix.os }}
           path: build/
+
+      # Create GitHub Release on the build/
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'push'
+        with:
+          files: build/exe.linux-x86_64/**, build/exe.win-amd64/**
+          tag_name: v1.0.${{ github.run_number }}
+          name: Release v1.0.${{ github.run_number }}
+          draft: false
+          prerelease: false
+          asset_name: |
+            Windows_x86_64.zip=build/exe.win-amd64/**
+            Linux_x86_64.zip=build/exe.linux-x86_64/**
