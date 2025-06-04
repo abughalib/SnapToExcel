@@ -6,7 +6,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# ⇢ Without write permission, creating tags/releases fails with a 403.
 permissions:
   contents: write
 
@@ -53,19 +52,12 @@ jobs:
           python cxfreeze.py build
 
       # 6. Archive (zip) the entire build/ folder into a single, OS-specific ZIP
-      #
-      #    We use a short Python snippet so it works identically on both Linux and Windows.
+      #    Use a one-line python -c call so it works on both Ubuntu (bash) and Windows (PowerShell).
       - name: Archive build folder
-        shell: pwsh
-        run: |
-          python - <<EOF
-          import shutil
-          shutil.make_archive("snaptoexcel-${{ matrix.os }}", "zip", "build")
-          EOF
+        run: python -c "import shutil; shutil.make_archive('snaptoexcel-${{ matrix.os }}', 'zip', 'build')"
 
-      # 7. Upload that ZIP as a Release asset (one per OS). Because the ZIP filename
-      #    contains ${{ matrix.os }}, you can never get an “already_exists” conflict.
-      - name: Create (or update) GitHub Release & upload ZIP
+      # 7. Create (or update) GitHub Release & upload that single ZIP (unique per OS)
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'push'
         env:
