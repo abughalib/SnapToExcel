@@ -35,7 +35,7 @@ class App(tk.Tk):
         self.minsize(DEFAULT_VIEWPORT_WIDTH, DEFAULT_VIEWPORT_HEIGHT)
         self.resizable(True, True)
         self.attributes("-alpha", APP_TRANSPARENCY)  # type: ignore
-        # self.iconbitmap(utils.get_assets_file_path(APP_LARGE_ICON_PATH))
+        self.iconbitmap(utils.get_assets_file_path(APP_LARGE_ICON_PATH))  # type: ignore
 
         # Style
         self.style_text_info = ttk.Style()
