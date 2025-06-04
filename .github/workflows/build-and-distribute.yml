@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: [3.8] # Ensure Python 3.8+
+        python-version: [3.13] # Ensure Python 3.8+
     steps:
       # 1. Check out the repository
       - name: Checkout repository
