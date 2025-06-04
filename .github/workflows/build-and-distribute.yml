@@ -63,12 +63,12 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: build/exe.linux-x86_64/**, build/exe.win-amd64/**
+          files: |
+            build/**/*
           tag_name: v1.0.${{ github.run_number }}
           name: Release v1.0.${{ github.run_number }}
           draft: false
           prerelease: false
-          asset_name: |
-            Windows_x86_64.zip=build/exe.win-amd64/**
-            Linux_x86_64.zip=build/exe.linux-x86_64/**
