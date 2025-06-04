@@ -21,7 +21,7 @@ class XlxsSheet:
         file_name: str,
         start_row: int,
         start_column: str,
-        sheet_name="Sheet1",
+        sheet_name: str = "Sheet1",
         row_seperation: int = DEFAULT_SCREENSHOT_HEIGHT,
     ) -> None:
         logging.log(logging.INFO, f"XlxsSheet Constructor")
@@ -35,7 +35,7 @@ class XlxsSheet:
         self.file_path = join_path(folder_path, self.file_name)
         self.storage = Storage()
         self.sheet = pd.DataFrame()
-        self.sheet_index = dict()
+        self.sheet_index: dict[str, int] = dict()
         self.sheet_index[self.sheet_name] = start_row
         self.writer = pd.ExcelWriter(self.file_path, engine="xlsxwriter")
 
@@ -109,7 +109,7 @@ class XlxsSheet:
 
         for rows in values:
             for row in rows:
-                to_write = []
+                to_write: list[str] = []
                 for data in row:
                     try:
                         data_str = str(data)
@@ -162,7 +162,7 @@ class XlxsSheet:
                 self.sheet_name = cast(str, action.getPayload())
 
         try:
-            self.sheet.to_excel(excel_writer=self.writer, sheet_name=self.sheet_name)
+            self.sheet.to_excel(excel_writer=self.writer, sheet_name=self.sheet_name)  # type: ignore
             self.writer.close()
             self.saved = True
             logging.log(

@@ -1,18 +1,17 @@
 import os
+import re
 import logging
 import random
-import re
 import threading
 from collections import deque
 
-import tkinter as tk
-from tkinter.messagebox import showinfo
 import webbrowser
-from pynput.keyboard import Key
-from PIL import Image, ImageTk
-from tkinter import ttk, StringVar, IntVar
-from tkinter import filedialog
+import tkinter as tk
 from tkinter.font import Font
+from PIL import Image, ImageTk
+from pynput.keyboard import Key
+from tkinter import ttk, StringVar, IntVar
+from tkinter import filedialog, messagebox
 
 from features.config import SnapToExcelConfig
 from features.export_sheet import XlxsSheet
@@ -21,6 +20,7 @@ from gui.action_window import LastFiveActions
 from gui.sql import execute_bulk_query, get_connection
 from gui.tooltip import CreateToolTip
 from gui.notifier import Notification
+from features.models import InfoType
 from gui.ui_constants import *
 from features import utils
 
@@ -34,18 +34,18 @@ class App(tk.Tk):
         self.title(APP_NAME)
         self.minsize(DEFAULT_VIEWPORT_WIDTH, DEFAULT_VIEWPORT_HEIGHT)
         self.resizable(True, True)
-        self.attributes("-alpha", APP_TRANSPARENCY)
-        # self.iconbitmap(utils.get_assets_file_path(APP_LARGE_ICON_PATH))
+        self.attributes("-alpha", APP_TRANSPARENCY)  # type: ignore
+        self.iconbitmap(utils.get_assets_file_path(APP_LARGE_ICON_PATH))  # type: ignore
 
         # Style
         self.style_text_info = ttk.Style()
         self.style_text_warning = ttk.Style()
         self.style_text_error = ttk.Style()
         self.style_text_success = ttk.Style()
-        self.style_text_info.configure(STYLE_INFO_LABEL, foreground="black")
-        self.style_text_warning.configure(STYLE_WARNING_LABEL, foreground="orange")
-        self.style_text_error.configure(STYLE_ERROR_LABEL, foreground="red")
-        self.style_text_success.configure(STYLE_SUCCESS_LABEL, foreground="green")
+        self.style_text_info.configure(STYLE_INFO_LABEL, foreground="black")  # type: ignore
+        self.style_text_warning.configure(STYLE_WARNING_LABEL, foreground="orange")  # type: ignore
+        self.style_text_error.configure(STYLE_ERROR_LABEL, foreground="red")  # type: ignore
+        self.style_text_success.configure(STYLE_SUCCESS_LABEL, foreground="green")  # type: ignore
 
         # Required Initialization
         self.saved_config = SnapToExcelConfig()
@@ -55,7 +55,7 @@ class App(tk.Tk):
         self.db_password = StringVar(value=self.saved_config.get_db_password())
         self.sql_queries = self.saved_config.get_last_sql_queries()
         self.shortcutKey = None
-        self.threads = deque()
+        self.threads: deque[threading.Thread] = deque()
         self.shortcutKeyButton = self.saved_config.get_shortcut_key()
         self.start_row, self.start_column = (
             self.saved_config.get_workbook_start_position()
@@ -299,14 +299,12 @@ class App(tk.Tk):
             text=UNDO_LAST_ACTION_LABEL,
             command=self._undo_last_action,
         )
-        self.undo_action_btn.config(image=self.undo_last_action_icon)
-
-        # type: ignore
+        self.undo_action_btn.config(image=self.undo_last_action_icon)  # type: ignore
 
         self.undo_action_btn.image = self.undo_last_action_icon  # type: ignore
         self.undo_action_btn.pack(side=tk.LEFT, expand=True)
 
-        # Info Text
+        # InfoType.INFO Text
         self.info_text_frame = ttk.Frame()
         self.info_text_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         self.info_text_label = ttk.Label(self.info_text_frame, text=INFO_TEXT_LABEL)
@@ -376,7 +374,7 @@ class App(tk.Tk):
                     logging.INFO,
                     f"Sheet Name same as previous",
                 )
-                self.change_info_text(f"Sheet Name same as Previous", WARNING)
+                self.change_info_text(f"Sheet Name same as Previous", InfoType.WARNING)
             else:
                 logging.log(
                     logging.INFO,
@@ -386,7 +384,7 @@ class App(tk.Tk):
                 self.change_sheet_btn.config(text=CHANGE_SHEET_BUTTON_LABEL_CHANGED)
                 self.change_info_text(
                     f"Changed Sheet Name from: {self.previous_sheet_name} to {self.sheet_name.get()}",
-                    SUCCESS,
+                    InfoType.SUCCESS,
                 )
                 self.change_sheet_btn.config(text=CHANGE_SHEET_BUTTON_LABEL)
                 self.previous_sheet_name = self.sheet_name.get()
@@ -400,7 +398,7 @@ class App(tk.Tk):
             self.previous_sheet_name = self.sheet_name.get()
             self.change_sheet_btn.config(text=CHANGE_SHEET_BUTTON_LABEL_CHANGED)
             self.change_info_text(
-                f"Changed First Sheet Name to {self.sheet_name.get()}", SUCCESS
+                f"Changed First Sheet Name to {self.sheet_name.get()}", InfoType.SUCCESS
             )
             self.change_sheet_btn.config(text=CHANGE_SHEET_BUTTON_LABEL)
         else:
@@ -411,11 +409,11 @@ class App(tk.Tk):
             )
 
             self.change_sheet_btn.config(text=CHANGE_SHEET_BUTTON_LABEL_FAILED)
-            self.change_info_text(f"Cannot have empty sheet name", WARNING)
+            self.change_info_text(f"Cannot have empty sheet name", InfoType.WARNING)
             self.change_sheet_btn.config(text=CHANGE_SHEET_BUTTON_LABEL)
 
     def _set_row_seperation(self):
-        new_value: str = self.row_speration_textbox.get()
+        new_value: str = self.row_seperation_textbox.get()
         if new_value and new_value.isnumeric():
             logging.log(
                 logging.INFO,
@@ -430,7 +428,7 @@ class App(tk.Tk):
                     f"Row Seperation value update to: {new_value}",
                 )
                 self.change_info_text(
-                    f"Updated row seperation value to: {new_value}", SUCCESS
+                    f"Updated row seperation value to: {new_value}", InfoType.SUCCESS
                 )
 
             else:
@@ -440,14 +438,16 @@ class App(tk.Tk):
                     f"Set row seperation value to: {self.row_seperation}",
                 )
                 self.change_info_text(
-                    f"Changed row seperation value to: {new_value}", SUCCESS
+                    f"Changed row seperation value to: {new_value}", InfoType.SUCCESS
                 )
         else:
             logging.log(
                 logging.ERROR,
                 f"Invalid row seperation value: {new_value}",
             )
-            self.change_info_text(f"Invalid row seperation value: {new_value}", ERROR)
+            self.change_info_text(
+                f"Invalid row seperation value: {new_value}", InfoType.ERROR
+            )
 
     def _set_start_position(self):
 
@@ -466,7 +466,7 @@ class App(tk.Tk):
                     f"Updated start Position to: {new_value}",
                 )
                 self.change_info_text(
-                    f"Updated Start Position to: {new_value}", SUCCESS
+                    f"Updated Start Position to: {new_value}", InfoType.SUCCESS
                 )
             else:
                 self.start_row, self.start_column = utils.get_row_column(new_value)
@@ -474,7 +474,9 @@ class App(tk.Tk):
                     logging.INFO,
                     f"Set Start Position to: {self.row_seperation}",
                 )
-                self.change_info_text(f"Set Start Position to: {new_value}", SUCCESS)
+                self.change_info_text(
+                    f"Set Start Position to: {new_value}", InfoType.SUCCESS
+                )
 
         else:
             logging.log(
@@ -482,7 +484,7 @@ class App(tk.Tk):
                 f"Failed to set Start Position to: {new_value}",
             )
             self.change_info_text(
-                f"Failed to set Start Position to: {new_value}", ERROR
+                f"Failed to set Start Position to: {new_value}", InfoType.ERROR
             )
 
     def _start_process(self):
@@ -495,7 +497,9 @@ class App(tk.Tk):
             if utils.check_file_exists(
                 utils.join_path(excel_save_folder, excel_save_filename)
             ):
-                self.change_info_text("File Already Exists, Change File Name", WARNING)
+                self.change_info_text(
+                    "File Already Exists, Change File Name", InfoType.WARNING
+                )
 
             else:
                 self._set_start_position()
@@ -522,7 +526,9 @@ class App(tk.Tk):
                     logging.INFO,
                     f"Started Listining to Shortcut Key: {self.shortcutKey.shortcut_key}",
                 )
-                self.change_info_text("Started Listening to Shortcut Key", INFO)
+                self.change_info_text(
+                    "Started Listening to Shortcut Key", InfoType.INFO
+                )
         else:
             th = threading.Thread(target=self._save_sheet)
             self.threads.append(th)
@@ -537,7 +543,9 @@ class App(tk.Tk):
                     logging.INFO,
                     f"Stopped Listining to Key: {self.shortcutKey.shortcut_key}",
                 )
-                self.change_info_text("Stopped Listening to Shortcut Key", INFO)
+                self.change_info_text(
+                    "Stopped Listening to Shortcut Key", InfoType.INFO
+                )
 
     def browse_folder(self):
 
@@ -548,12 +556,15 @@ class App(tk.Tk):
         self.folder_location_textbox.config(textvariable=self.folder_path)
 
     def _get_photo_or_none(
-        self, asset_name: str, width=BUTTON_ICON_WIDTH, height=BUTTON_ICON_HEIGHT
+        self,
+        asset_name: str,
+        width: int = BUTTON_ICON_WIDTH,
+        height: int = BUTTON_ICON_HEIGHT,
     ):
 
         if utils.check_file_exists(utils.get_assets_file_path(asset_name)):
             image = Image.open(utils.get_assets_file_path(asset_name))
-            image = image.resize((width, height))
+            image = image.resize(size=(width, height))
             photoImage = ImageTk.PhotoImage(image)
             return photoImage
 
@@ -567,7 +578,9 @@ class App(tk.Tk):
         if self.xls and self.xls.save_sheet():
 
             xlsx_file_abs_path = os.path.abspath(self.xls.file_path)
-            self.change_info_text(f"File Saved at: {xlsx_file_abs_path}", SUCCESS)
+            self.change_info_text(
+                f"File Saved at: {xlsx_file_abs_path}", InfoType.SUCCESS
+            )
             th = threading.Thread(
                 target=self.notifier.send_notification_success,
                 args=(
@@ -580,7 +593,7 @@ class App(tk.Tk):
             th.start()
 
         else:
-            self.change_info_text(f"Saving Failed, Check Log", ERROR)
+            self.change_info_text(f"Saving Failed, Check Log", InfoType.ERROR)
             th = threading.Thread(
                 target=self.notifier.send_notification_error,
                 args=("Failed", f"Saving File Failed, Check Log", 5),
@@ -606,18 +619,19 @@ class App(tk.Tk):
         logging.log(logging.INFO, f"Changing Shortcut Key Text Value To: {new_key}")
         self.current_shortcut_key.config(text=f"Current Shortcut Key: {new_key}")
 
-    def change_info_text(self, message: str, info_type=INFO):
+    def change_info_text(self, message: str, info_type: InfoType = InfoType.INFO):
 
         logging.log(logging.INFO, f"Info Text Changed to: {message}")
         style = STYLE_INFO_LABEL
-        if info_type == WARNING:
-            style = STYLE_WARNING_LABEL
-        elif info_type == ERROR:
-            style = STYLE_ERROR_LABEL
-        elif info_type == SUCCESS:
-            style = STYLE_SUCCESS_LABEL
-        else:
-            style = STYLE_INFO_LABEL
+        match info_type:
+            case InfoType.WARNING:
+                style = STYLE_WARNING_LABEL
+            case InfoType.ERROR:
+                style = STYLE_ERROR_LABEL
+            case InfoType.SUCCESS:
+                style = STYLE_SUCCESS_LABEL
+            case InfoType.INFO:
+                style = STYLE_INFO_LABEL
 
         self.info_text_label.config(
             text=f"{info_type.capitalize()}: {message}", style=style
@@ -629,17 +643,17 @@ class App(tk.Tk):
         if self.xls:
             res = self.xls.undo_last_action()
             logging.log(logging.INFO, f"Last Action Removed")
-            self.change_info_text(res, SUCCESS)
+            self.change_info_text(res, InfoType.SUCCESS)
         else:
             logging.log(logging.ERROR, f"xlsx not initialized yet")
-            self.change_info_text("Process yet to start", WARNING)
+            self.change_info_text("Process yet to start", InfoType.WARNING)
 
     def _save_config(self):
 
         logging.log(logging.INFO, f"Saving Configurations")
         self.saved_config.set_last_path(self.folder_path.get())
         self.saved_config.set_shortcut_key(self.shortcutKeyButton)
-        self.saved_config.set_row_seperation(self.row_seperation.get())
+        self.saved_config.set_row_seperation(self.row_seperation.get())  # type: ignore
         self.saved_config.set_workbook_start_position(self.start_cell_position.get())
         self.saved_config.set_last_sql_queries(self.sql_queries)  # type: ignore
         self.saved_config.set_db_username(self.db_username.get())
@@ -662,7 +676,8 @@ class App(tk.Tk):
         if not utils.is_valid_connection_url(connection_url):
 
             self.change_info_text(
-                f"Check Connection URL, It should be IP:PORT/SERVICE_NAME", ERROR
+                f"Check Connection URL, It should be IP:PORT/SERVICE_NAME",
+                InfoType.ERROR,
             )
 
             return
@@ -681,20 +696,20 @@ class App(tk.Tk):
                         total_rows_feched = sum([len(x) for x in res])
                         self.change_info_text(
                             f"Executed Query Sucessfully, Fetched: {total_rows_feched} rows",
-                            SUCCESS,
+                            InfoType.SUCCESS,
                         )
                         conn.close()
                 else:
                     logging.log(
                         logging.ERROR, f"Query Execution Failed, {self.sql_queries}"
                     )
-                    self.change_info_text(f"Query Execution Failed", ERROR)
+                    self.change_info_text(f"Query Execution Failed", InfoType.ERROR)
             else:
                 logging.log(logging.ERROR, f"Connection Creation Failed: {conn_string}")
-                self.change_info_text(f"Connection Creation Failed", ERROR)
+                self.change_info_text(f"Connection Creation Failed", InfoType.ERROR)
         else:
             logging.log(logging.ERROR, f"XLS not initialized yet")
-            self.change_info_text("Process yet to start", WARNING)
+            self.change_info_text("Process yet to start", InfoType.WARNING)
 
     def _handle_help_video(self):
         webbrowser.open_new(HELP_DOCS_VIDEO)
@@ -715,7 +730,7 @@ class App(tk.Tk):
             \nEmail: {APP_AUTHOR_EMAIL}\
         """
 
-        showinfo(title=HELP_MENU_ABOUT_LABEL, message=ABOUT_MESSAGE)
+        messagebox.showinfo(title=HELP_MENU_ABOUT_LABEL, message=ABOUT_MESSAGE)  # type: ignore
 
     def on_exit_gui(self):
 
@@ -726,7 +741,7 @@ class App(tk.Tk):
         self._save_config()
         self.destroy()
 
-    def configure_tags(self, tags):
+    def configure_tags(self, tags: dict[str, str]):
 
         for tag, color in tags.items():
             self.sql_queries_entry.tag_delete(tag)
@@ -734,12 +749,10 @@ class App(tk.Tk):
 
     def on_key_release(self):
 
-        th = threading.Thread(target=self._on_key_release)
+        th = threading.Thread(target=self._on_key_release)  # type: ignore
         th.start()
 
-    def _on_key_release(self, event=None):
-
-        import re, tkinter as tk
+    def _on_key_release(self):
 
         text_widget = self.sql_queries_entry
 
@@ -765,7 +778,7 @@ class App(tk.Tk):
             "identifier": {"foreground": "#000000"},  # pure black
         }
         for tag, cfg in styles.items():
-            text_widget.tag_configure(tag, **cfg)
+            text_widget.tag_configure(tag, cfg)
 
         patterns = [
             (re.compile(r"--.*?$", re.MULTILINE), "comment"),

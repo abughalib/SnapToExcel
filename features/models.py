@@ -10,7 +10,9 @@ class ScreenshotMode(Enum):
 
 class ScreenShotRegion:
 
-    def __init__(self, left=0, top=0, right=1920, bottom=1080):
+    def __init__(
+        self, left: int = 0, top: int = 0, right: int = 1920, bottom: int = 1080
+    ):
         self.left = left
         self.right = right
         self.top = top
@@ -30,3 +32,13 @@ class ScreenShotRegion:
 
     def get_region(self):
         return (self.left, self.top, self.right, self.bottom)
+
+
+class InfoType(Enum):
+    INFO = "INFO"
+    SUCCESS = "SUCCESS"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+
+    def capitalize(self):
+        return self.name.capitalize()

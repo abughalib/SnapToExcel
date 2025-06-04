@@ -169,6 +169,23 @@ def clean_xls_file_name(file_name: str) -> str:
     return file_name
 
 
+def clean_sql_query(query: str) -> str:
+    """Clean SQL Query by removing new lines and extra spaces."""
+
+    logging.log(logging.INFO, f"Cleaning SQL Query: {query}", exc_info=True)
+
+    if not query:
+        return ""
+
+    cleaned_query = re.sub(r"\s+", " ", query)
+    cleaned_query = re.sub(r"\n", " ", cleaned_query)
+    cleaned_query = re.sub(r"\r", " ", cleaned_query)
+
+    logging.log(logging.INFO, f"Cleaned SQL Query: {cleaned_query}", exc_info=True)
+
+    return cleaned_query
+
+
 def get_log_path():
     log_final_path = os.path.join(
         get_user_dir(),
@@ -388,6 +405,8 @@ def extract_oracle_driver() -> bool:
             )
             return False
         return True
+
+    return False
 
 
 def get_oracle_driver_path() -> str | None:

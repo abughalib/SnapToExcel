@@ -134,9 +134,3 @@ STYLE_SUCCESS_LABEL = "success.TLabel"
 HELP_DOCS_VIDEO = "https://www.github.com/abughalib"
 HELP_DOCS_LINK = "https://www.github.com/abughalib"
 UPDATE_LINK_DOCS = "https://www.github.com/abughalib"
-
-# INFO TYPE
-INFO = "INFO"
-SUCCESS = "SUCCESS"
-WARNING = "WARNING"
-ERROR = "ERROR"

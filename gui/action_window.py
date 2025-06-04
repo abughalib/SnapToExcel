@@ -20,7 +20,7 @@ class LastFiveActions:
     def create_scrollable_window(self):
         self.canvas = tk.Canvas(self.child_window)
         self.scrollbar = tk.Scrollbar(
-            self.child_window, orient="vertical", command=self.canvas.yview
+            self.child_window, orient="vertical", command=self.canvas.yview  # type: ignore
         )
 
         self.scrollable_frame = tk.Frame(self.canvas)
@@ -43,11 +43,11 @@ class LastFiveActions:
         last_five_actions = list(self.storage.get_stack())[-5:]
 
         for action in reversed(last_five_actions):
-            action_type: str = ""
 
             match action.action_type:
                 case ACTION_TYPE.INSERT_IMAGE:
-                    image_data = io.BytesIO(action.payload[0].getvalue())
+                    assert isinstance(action.payload, tuple)
+                    image_data = io.BytesIO(action.payload[0].getvalue())  # type: ignore
                     img = Image.open(image_data)
 
                     # More Size support can be added here
@@ -58,7 +58,7 @@ class LastFiveActions:
 
                     photo = ImageTk.PhotoImage(img)
                     label = tk.Label(self.scrollable_frame, image=photo)
-                    label.image = photo
+                    label.image = photo  # type: ignore Keep a reference to avoid garbage collection
                     label.pack()
 
                 case ACTION_TYPE.CHANGE_SHEET:
@@ -77,5 +77,5 @@ class LastFiveActions:
                     text_widget.config(state="disabled")
                     text_widget.pack()
 
-            action_label = tk.Label(self.scrollable_frame, text=action_type)
+            action_label = tk.Label(self.scrollable_frame, text=action.action_type.name)
             action_label.pack()
