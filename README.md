@@ -8,10 +8,10 @@ Works on Windows and Linux OS, Not tested on Mac OS.
 
 <details>
     <summary>Show</summary>
-    
+
 ![image](./screenshots/snapToExcel.png)
 ![image](./screenshots/snapToExcel_result.png)
-    
+
 </details>
 
 ## Use Cases
@@ -24,9 +24,30 @@ Works on Windows and Linux OS, Not tested on Mac OS.
 - Install [Python 3.8+](https://www.python.org/)
 - virtualenv [Virtual Environment](https://virtualenv.pypa.io/en/latest/)
 
-## Installation
+### On Linux
 
-1. Create a virtual environment
+### Install Dev Dependencies (Debian Based)
+
+ ```bash
+ sudo apt install python3-dev python3-pip build-essential libgtk-3-dev python3-tk
+ ```
+
+### On Windows
+
+#### Install Build Tools
+
+- Using Visual Studio
+    [Microsoft Visual Studio Build Tools using Visual Studio](https://visualstudio.microsoft.com/downloads/)
+
+- Using Winget CLI
+
+    ```powershell
+    winget install Microsoft.VisualStudio.2022.BuildTools --force --override "--wait --passive --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.22621"
+    ```
+
+### Setup Development Environment
+
+1. Create & Activate virtual environment
 
     ```bash
     python3 -m virtualenv venv
@@ -48,14 +69,52 @@ Works on Windows and Linux OS, Not tested on Mac OS.
 
 3. Install dependencies
 
+    On Windows
+
     ```bash
     pip install -r requirements.txt
     ```
 
-4. Run the application
+    On Linux
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+    ```bash
+    pip install -r requirements.linux.txt
+    ```
+
+## Build Executable
+
+- [Setup Development Environment](#setup-development-environment)
+
+### Build Executable exe on Windows
+
+- Run the application
 
     ```bash
     python main.py
+    ```
+
+- Build Exe using Cx_Freeze
+
+    ```bash
+    python cxfreeze_config.py build
+    ```
+
+### Build Executable on Linux
+
+- Run the application
+
+    ```bash
+    python main.py
+    ```
+
+- Build using Cx_Freeze
+
+    ```bash
+    python cxfreeze_config.py build
     ```
 
 ## Contributing
