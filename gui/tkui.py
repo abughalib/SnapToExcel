@@ -67,6 +67,7 @@ class App(tk.Tk):
         self.row_seperation = IntVar(value=self.saved_config.get_row_seperation())
         self.previous_sheet_name = DEFAULT_SHEET_NAME
         self.sheet_name = StringVar(value=DEFAULT_SHEET_NAME)
+        self.db_engine_selection = StringVar(value=self.saved_config.get_db_engine())
         self.message = DEFAULT_INFO_MESSAGE
         self.xls = None
 
@@ -190,6 +191,27 @@ class App(tk.Tk):
         )
         self.sheet_name_textbox.pack(side=tk.LEFT, expand=True, fill=tk.X)
 
+        # DB Engine
+        self.db_engine_label_frame = ttk.Frame(self)
+        self.db_engine_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.db_engine_label = ttk.Label(
+            self.db_engine_label_frame,
+            text=DB_ENGINE_SELECTION_LABEL,
+            width=MAX_LABEL_WIDTH,
+        )
+        self.db_engine_label.pack(side=tk.LEFT)
+        self.db_engine_combbox = ttk.OptionMenu(
+            self.db_engine_label_frame,
+            self.db_engine_selection,
+            (
+                self.db_engine_selection.get()
+                if self.db_engine_selection.get() in DB_ENGINE_SELECTION_LIST
+                else DB_ENGINE_SELECTION_LIST[0]
+            ),
+            *DB_ENGINE_SELECTION_LIST,
+        )
+        self.db_engine_combbox.pack(side=tk.LEFT, expand=True, fill=tk.X)
+
         # DB Credentials Username
         self.db_username_label_frame = ttk.Frame(self)
         self.db_username_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -249,12 +271,49 @@ class App(tk.Tk):
             width=DEFAULT_TEXT_AREA_WIDTH + 3,
             height=DEFAULT_TEXT_AREA_HEIGHT,
             wrap=tk.WORD,
+            undo=True,
+        )
+
+        # Add right-click menu
+        self.context_menu = tk.Menu(self.sql_queries_entry, tearoff=0)
+        self.context_menu.add_command(
+            label=CUT_COMMAND_LABEL,
+            command=lambda: self.sql_queries_entry.event_generate(CUT_EVENT),
+        )
+        self.context_menu.add_command(
+            label=COPY_COMMAND_LABEL,
+            command=lambda: self.sql_queries_entry.event_generate(COPY_EVENT),
+        )
+        self.context_menu.add_command(
+            label=PASTE_COMMAND_LABEL,
+            command=lambda: self.sql_queries_entry.event_generate(PASTE_EVENT),
+        )
+        self.context_menu.add_separator()
+        self.context_menu.add_command(
+            label=SELECT_ALL_COMMAND_LABEL,
+            command=lambda: self.sql_queries_entry.tag_add("sel", "1.0", "end"),
+        )
+
+        # Bind right click to show context menu
+        self.sql_queries_entry.bind(
+            RIGHT_CLICK_BUTTON, lambda e: self.context_menu.post(e.x_root, e.y_root)
+        )
+
+        # Standard key bindings
+        self.sql_queries_entry.bind(
+            CTRL_A_BUTTON, lambda e: self.sql_queries_entry.tag_add("sel", "1.0", "end")
+        )
+        self.sql_queries_entry.bind(
+            CTRL_Z_BUTTON, lambda e: self.sql_queries_entry.edit_undo()
+        )
+        self.sql_queries_entry.bind(
+            CTRL_Y_BUTTON, lambda e: self.sql_queries_entry.edit_redo()
         )
 
         self.sql_queries_entry.insert("1.0", self.sql_queries)
         self.on_key_release()
-        self.sql_queries_entry.bind("<KeyRelease>", lambda event: self.on_key_release())
-        self.sql_queries_entry.bind("<Enter>", lambda event: self.on_key_release())
+        self.sql_queries_entry.bind(KEY_RELEASE, lambda event: self.on_key_release())
+        self.sql_queries_entry.bind(ENTER_BUTTON, lambda event: self.on_key_release())
         self.sql_queries_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
 
         # BUTTONS
@@ -326,7 +385,7 @@ class App(tk.Tk):
         self.show_action_window_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         self.show_action_window_frame_btn = ttk.Button(
             self.show_action_window_frame,
-            text="Show Last Action",
+            text=SHOW_LAST_ACTION_BUTTON_LABEL,
             command=self._open_last_action_window,
         )
         self.show_action_window_frame_btn.pack(side=tk.LEFT)
@@ -659,6 +718,7 @@ class App(tk.Tk):
         self.saved_config.set_db_username(self.db_username.get())
         self.saved_config.set_db_password(self.db_password.get())
         self.saved_config.set_db_connection_url(self.connection_url.get())
+        self.saved_config.set_db_engine(self.db_engine_selection.get())
 
         if self.xls and not self.xls.saved:
             logging.log(logging.INFO, f"Saving Excel Sheet")

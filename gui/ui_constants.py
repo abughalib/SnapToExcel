@@ -92,6 +92,15 @@ SHEET_NAME_LABEL = "Sheet Name: "
 SHEET_NAME_HINT = "Worksheet Name: "
 SHEET_SOURCE = "sheet_name"
 
+# DB ENGINE
+DB_ENGINE_SELECTION_LABEL = "Database Engine: "
+DB_ENGINE_SELECTION_VALUE = "Choose Database Engine"
+DB_ENGINE_SELECTION_LIST = [
+    "PostgreSQL",
+    "MySQL",
+    "OracleDB",
+]
+
 # DB CREDENTIALS
 DB_USERNAME_LABEL = "DB User Name: "
 DB_PASSWORD_LABEL = "DB Password: "
@@ -103,6 +112,28 @@ INFO_TEXT_LABEL = "Info: "
 # Shortcut Key Label
 CURRENT_SHORTCUT_KEY_LABEL = "Current Shortcut Key: "
 CHANGE_SHORTCUT_ICON = "change_shortcutkey_button.png"
+
+# KEYBOARD / MOUSE BUTTON VALUES
+RIGHT_CLICK_BUTTON = "<Button-3>"
+LEFT_CLICK_BUTTON = "<Button-1>"
+CTRL_A_BUTTON = "<Control-a>"
+CTRL_C_BUTTON = "<Control-c>"
+CTRL_V_BUTTON = "<Control-v>"
+CTRL_Z_BUTTON = "<Control-z>"
+CTRL_Y_BUTTON = "<Control-y>"
+ENTER_BUTTON = "<Enter>"
+KEY_RELEASE = "<KeyRelease>"
+
+# TK Command Labels
+CUT_COMMAND_LABEL = "Cut"
+COPY_COMMAND_LABEL = "Copy"
+PASTE_COMMAND_LABEL = "Paste"
+SELECT_ALL_COMMAND_LABEL = "Select All"
+
+# TK EVENTS
+CUT_EVENT = "<<Cut>>"
+COPY_EVENT = "<<Copy>>"
+PASTE_EVENT = "<<Paste>>"
 
 # BUTTONS
 # SQL QUERY BUTTON
@@ -127,6 +158,9 @@ STOP_BUTTON_ICON = "stop_button.png"
 
 # CHANGE SHORTCUT KEY
 CHANGE_SHORTCUT_KEY_BUTTON_LABEL = "Change Shortcut Key"
+
+# SHOW LAST ACTION
+SHOW_LAST_ACTION_BUTTON_LABEL = "Show Last Actions"
 
 # STYLE
 STYLE_INFO_LABEL = "info.TLabel"
