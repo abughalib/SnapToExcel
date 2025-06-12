@@ -17,8 +17,9 @@ from features.config import SnapToExcelConfig
 from features.export_sheet import XlxsSheet
 from features.shortcut_detect import ShortcutKey
 from gui.action_window import LastFiveActions
-from gui.sql import execute_bulk_query, get_connection
+from gui.sql import execute_bulk_query, create_connection
 from gui.tooltip import CreateToolTip
+from gui.models import DatabaseEngine
 from gui.notifier import Notification
 from features.models import InfoType
 from gui.ui_constants import *
@@ -733,21 +734,25 @@ class App(tk.Tk):
         queries = [query for query in striped_queries.split(";") if query]
         connection_url = self.connection_url.get()
 
-        if not utils.is_valid_connection_url(connection_url):
+        db_engine = DatabaseEngine.from_string(self.db_engine_selection.get())
 
-            self.change_info_text(
-                f"Check Connection URL, It should be IP:PORT/SERVICE_NAME",
-                InfoType.ERROR,
-            )
+        match db_engine:
+            case DatabaseEngine.ORACLE:
+                hostname = connection_url.split(":")[0]
+                port, service_name = connection_url.split(":")[1].split("/")
+                conn_string = f"oracle://{self.db_username.get()}:{self.db_password.get()}@{hostname}:{port}/{service_name}"
+            case DatabaseEngine.MYSQL:
+                hostname = connection_url.split(":")[0]
+                port, database_name = connection_url.split(":")[1].split("/")
+                conn_string = f"mysql://{self.db_username.get()}:{self.db_password.get()}@{hostname}:{port}/{database_name}"
 
-            return
-
-        hostname = connection_url.split(":")[0]
-        port, service_name = connection_url.split(":")[1].split("/")
-        conn_string = f"{self.db_username.get()}/{self.db_password.get()}@{hostname}:{port}/{service_name}"
+            case DatabaseEngine.POSTGRESQL:
+                hostname = connection_url.split(":")[0]
+                port, database_name = connection_url.split(":")[1].split("/")
+                conn_string = f"postgresql://{self.db_username.get()}:{self.db_password.get()}@{hostname}:{port}/{database_name}"
 
         if self.xls:
-            conn = get_connection(conn_string)
+            conn = create_connection(db_engine, conn_string)
             if conn:
                 res = execute_bulk_query(conn, queries)
                 if res:

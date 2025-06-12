@@ -447,3 +447,17 @@ def get_oracle_driver_path() -> str | None:
                 exc_info=True,
             )
             raise Exception(f"Oracle Driver Path: {driver_path} does not exist")
+
+
+def validate_string_with_regex(string: str, regex: str) -> bool:
+    logging.log(
+        logging.INFO,
+        f"Validating string: {string} with regex: {regex}",
+        exc_info=True,
+    )
+    if re.match(regex, string):
+        logging.log(logging.INFO, f"String: {string} is valid", exc_info=True)
+        return True
+    else:
+        logging.log(logging.ERROR, f"String: {string} is invalid", exc_info=True)
+        return False
