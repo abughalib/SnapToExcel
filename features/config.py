@@ -23,6 +23,7 @@ DEFAULTSQLQUERIES = ""
 DBAUTHENTICATIONSECTION = "DBAUTHENTICATION"
 DBUSERNAME = "DBUSERNAME"
 DBPASSWORD = "DBPASSWORD"
+DEFAULT_DB_ENGINE = "PostgreSQL"
 DBCONNECTIONURL = "DBCONNECTIONURL"
 DEFAULT_SERVICE_URL = "192.168.0.110:1234/SERVICE_NAME"
 
@@ -194,6 +195,22 @@ class SnapToExcelConfig:
             logging.INFO, f"Setting Workbook Start Position to: {start_position}"
         )
         self.config[WORKBOOK_SECTION][WORKBOOK_START_POSITION] = start_position
+
+    def get_db_engine(self) -> str:
+        logging.log(logging.INFO, f"Getting Database Engine")
+        if "DBENGINE" in self.config[DBAUTHENTICATIONSECTION]:
+            db_engine = self.config[DBAUTHENTICATIONSECTION]["DBENGINE"]
+            logging.log(logging.INFO, f"Found Stored Database Engine: {db_engine}")
+            return db_engine
+        logging.log(logging.INFO, "Returning default Database Engine")
+        return DEFAULT_DB_ENGINE
+
+    def set_db_engine(self, database_engine: str):
+        logging.log(logging.INFO, f"Setting Database Engine to: {database_engine}")
+        if "DBENGINE" not in self.config[DBAUTHENTICATIONSECTION]:
+            self.config[DBAUTHENTICATIONSECTION]["DBENGINE"] = database_engine
+        else:
+            self.config[DBAUTHENTICATIONSECTION]["DBENGINE"] = database_engine
 
     def save_config(self):
         logging.log(logging.INFO, f"Saving config to: {get_config_path()}")
