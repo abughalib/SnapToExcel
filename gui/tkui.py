@@ -52,8 +52,6 @@ class App(tk.Tk):
         self.saved_config = SnapToExcelConfig()
         self.file_name = StringVar(value=self.generate_name())
         self.folder_path = StringVar(value=self.saved_config.get_last_path())
-        self.db_username = StringVar(value=self.saved_config.get_db_username())
-        self.db_password = StringVar(value=self.saved_config.get_db_password())
         self.sql_queries = self.saved_config.get_last_sql_queries()
         self.shortcutKey = None
         self.threads: deque[threading.Thread] = deque()
@@ -212,41 +210,6 @@ class App(tk.Tk):
             *DB_ENGINE_SELECTION_LIST,
         )
         self.db_engine_combbox.pack(side=tk.LEFT, expand=True, fill=tk.X)
-
-        # DB Credentials Username
-        self.db_username_label_frame = ttk.Frame(self)
-        self.db_username_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.db_username_label = ttk.Label(
-            self.db_username_label_frame,
-            text=DB_USERNAME_LABEL,
-            width=MAX_LABEL_WIDTH,
-        )
-        self.db_username_label.pack(side=tk.LEFT)
-        self.db_username_entry = ttk.Entry(
-            self.db_username_label_frame,
-            width=DEFAULT_TEXT_FIELD_WIDTH,
-            textvariable=self.db_username,
-        )
-        self.db_username_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
-
-        # DB Credentials Password
-
-        self.db_password_label_frame = ttk.Frame(self)
-        self.db_password_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.db_password_label = ttk.Label(
-            self.db_password_label_frame,
-            text=DB_PASSWORD_LABEL,
-            width=MAX_LABEL_WIDTH,
-        )
-
-        self.db_password_label.pack(side=tk.LEFT)
-        self.db_password_entry = ttk.Entry(
-            self.db_password_label_frame,
-            width=DEFAULT_TEXT_FIELD_WIDTH,
-            show="*",
-            textvariable=self.db_password,
-        )
-        self.db_password_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
 
         # DB Credentials Connection URL
         self.connection_url_label_frame = ttk.Frame(self)
@@ -716,8 +679,6 @@ class App(tk.Tk):
         self.saved_config.set_row_seperation(self.row_seperation.get())  # type: ignore
         self.saved_config.set_workbook_start_position(self.start_cell_position.get())
         self.saved_config.set_last_sql_queries(self.sql_queries)  # type: ignore
-        self.saved_config.set_db_username(self.db_username.get())
-        self.saved_config.set_db_password(self.db_password.get())
         self.saved_config.set_db_connection_url(self.connection_url.get())
         self.saved_config.set_db_engine(self.db_engine_selection.get())
 
@@ -738,21 +699,19 @@ class App(tk.Tk):
 
         match db_engine:
             case DatabaseEngine.ORACLE:
-                hostname = connection_url.split(":")[0]
-                port, service_name = connection_url.split(":")[1].split("/")
-                conn_string = f"oracle://{self.db_username.get()}:{self.db_password.get()}@{hostname}:{port}/{service_name}"
+                assert utils.validate_string_with_regex(
+                    connection_url, ORACLE_URL_VALIDATION_REGEX
+                )
             case DatabaseEngine.MYSQL:
-                hostname = connection_url.split(":")[0]
-                port, database_name = connection_url.split(":")[1].split("/")
-                conn_string = f"mysql://{self.db_username.get()}:{self.db_password.get()}@{hostname}:{port}/{database_name}"
-
+                assert utils.validate_string_with_regex(
+                    connection_url, MYSQL_URL_VALIDATION_REGEX
+                )
             case DatabaseEngine.POSTGRESQL:
-                hostname = connection_url.split(":")[0]
-                port, database_name = connection_url.split(":")[1].split("/")
-                conn_string = f"postgresql://{self.db_username.get()}:{self.db_password.get()}@{hostname}:{port}/{database_name}"
-
+                assert utils.validate_string_with_regex(
+                    connection_url, POSTGRESQL_URL_VALIDATION_REGEX
+                )
         if self.xls:
-            conn = create_connection(db_engine, conn_string)
+            conn = create_connection(db_engine, connection_url)
             if conn:
                 res = execute_bulk_query(conn, queries)
                 if res:
@@ -768,10 +727,12 @@ class App(tk.Tk):
                     logging.log(
                         logging.ERROR, f"Query Execution Failed, {self.sql_queries}"
                     )
-                    self.change_info_text(f"Query Execution Failed", InfoType.ERROR)
+                    self.change_info_text("Query Execution Failed", InfoType.ERROR)
             else:
-                logging.log(logging.ERROR, f"Connection Creation Failed: {conn_string}")
-                self.change_info_text(f"Connection Creation Failed", InfoType.ERROR)
+                logging.log(
+                    logging.ERROR, f"Connection Creation Failed: {connection_url}"
+                )
+                self.change_info_text("Connection Creation Failed", InfoType.ERROR)
         else:
             logging.log(logging.ERROR, f"XLS not initialized yet")
             self.change_info_text("Process yet to start", InfoType.WARNING)
