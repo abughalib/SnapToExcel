@@ -122,7 +122,7 @@ class XlxsSheet:
                     try:
                         worksheet.write_row(cell_range, to_write)
 
-                    except Exception as e:
+                    except Exception as e: #type: ignore
                         logging.log(logging.INFO, f"Failed to add data: {to_write}")
 
                     self.next_row += 1

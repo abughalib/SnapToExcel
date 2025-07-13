@@ -3,10 +3,10 @@ import logging
 
 
 if platform.system() == "Windows":
-    from win11toast import toast
+    from win11toast import toast  # type: ignore
 
 if platform.system() == "Linux":
-    import notify2
+    import notify2  # type: ignore
 
 
 class Notification:
