@@ -92,6 +92,15 @@ SHEET_NAME_LABEL = "Sheet Name: "
 SHEET_NAME_HINT = "Worksheet Name: "
 SHEET_SOURCE = "sheet_name"
 
+# DB ENGINE
+DB_ENGINE_SELECTION_LABEL = "Database Engine: "
+DB_ENGINE_SELECTION_VALUE = "Choose Database Engine"
+DB_ENGINE_SELECTION_LIST = [
+    "PostgreSQL",
+    "MySQL",
+    "OracleDB",
+]
+
 # DB CREDENTIALS
 DB_USERNAME_LABEL = "DB User Name: "
 DB_PASSWORD_LABEL = "DB Password: "
@@ -163,3 +172,15 @@ STYLE_SUCCESS_LABEL = "success.TLabel"
 HELP_DOCS_VIDEO = "https://www.github.com/abughalib"
 HELP_DOCS_LINK = "https://www.github.com/abughalib"
 UPDATE_LINK_DOCS = "https://www.github.com/abughalib"
+
+# Validation Regex
+POSTGRESQL_URL_VALIDATION_REGEX = r"^(postgresql|postgres):\/\/[a-zA-Z0-9_]+:[a-zA-Z0-9_]+@([a-zA-Z0-9_.-]+):(\d+)\/([a-zA-Z0-9_]+)$"
+MYSQL_URL_VALIDATION_REGEX = (
+    r"^mysql:\/\/[a-zA-Z0-9_]+:[^@\/]+@([a-zA-Z0-9_.-]+):(\d+)\/([a-zA-Z0-9_-]+)$"
+)
+ORACLE_URL_VALIDATION_REGEX = (
+    r"^oracle:\/\/[a-zA-Z0-9_]+:[^@\/]+@([a-zA-Z0-9_.-]+):(\d+)\/([a-zA-Z0-9_-]+)$"
+)
+
+# Regex for matching
+MYSQL_URL_REGEX = r"^mysql:\/\/([a-zA-Z0-9_.-]+):([a-zA-Z0-9_]+)@([a-zA-Z0-9_.-]+):(\d+)\/([a-zA-Z0-9_]+)$"

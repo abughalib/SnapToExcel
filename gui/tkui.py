@@ -17,8 +17,9 @@ from features.config import SnapToExcelConfig
 from features.export_sheet import XlxsSheet
 from features.shortcut_detect import ShortcutKey
 from gui.action_window import LastFiveActions
-from gui.sql import execute_bulk_query, get_connection
+from gui.sql import execute_bulk_query, create_connection
 from gui.tooltip import CreateToolTip
+from gui.models import DatabaseEngine
 from gui.notifier import Notification
 from features.models import InfoType
 from gui.ui_constants import *
@@ -51,8 +52,6 @@ class App(tk.Tk):
         self.saved_config = SnapToExcelConfig()
         self.file_name = StringVar(value=self.generate_name())
         self.folder_path = StringVar(value=self.saved_config.get_last_path())
-        self.db_username = StringVar(value=self.saved_config.get_db_username())
-        self.db_password = StringVar(value=self.saved_config.get_db_password())
         self.sql_queries = self.saved_config.get_last_sql_queries()
         self.shortcutKey = None
         self.threads: deque[threading.Thread] = deque()
@@ -67,6 +66,7 @@ class App(tk.Tk):
         self.row_seperation = IntVar(value=self.saved_config.get_row_seperation())
         self.previous_sheet_name = DEFAULT_SHEET_NAME
         self.sheet_name = StringVar(value=DEFAULT_SHEET_NAME)
+        self.db_engine_selection = StringVar(value=self.saved_config.get_db_engine())
         self.message = DEFAULT_INFO_MESSAGE
         self.xls = None
 
@@ -190,40 +190,26 @@ class App(tk.Tk):
         )
         self.sheet_name_textbox.pack(side=tk.LEFT, expand=True, fill=tk.X)
 
-        # DB Credentials Username
-        self.db_username_label_frame = ttk.Frame(self)
-        self.db_username_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.db_username_label = ttk.Label(
-            self.db_username_label_frame,
-            text=DB_USERNAME_LABEL,
+        # DB Engine
+        self.db_engine_label_frame = ttk.Frame(self)
+        self.db_engine_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.db_engine_label = ttk.Label(
+            self.db_engine_label_frame,
+            text=DB_ENGINE_SELECTION_LABEL,
             width=MAX_LABEL_WIDTH,
         )
-        self.db_username_label.pack(side=tk.LEFT)
-        self.db_username_entry = ttk.Entry(
-            self.db_username_label_frame,
-            width=DEFAULT_TEXT_FIELD_WIDTH,
-            textvariable=self.db_username,
+        self.db_engine_label.pack(side=tk.LEFT)
+        self.db_engine_combbox = ttk.OptionMenu(
+            self.db_engine_label_frame,
+            self.db_engine_selection,
+            (
+                self.db_engine_selection.get()
+                if self.db_engine_selection.get() in DB_ENGINE_SELECTION_LIST
+                else DB_ENGINE_SELECTION_LIST[0]
+            ),
+            *DB_ENGINE_SELECTION_LIST,
         )
-        self.db_username_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
-
-        # DB Credentials Password
-
-        self.db_password_label_frame = ttk.Frame(self)
-        self.db_password_label_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        self.db_password_label = ttk.Label(
-            self.db_password_label_frame,
-            text=DB_PASSWORD_LABEL,
-            width=MAX_LABEL_WIDTH,
-        )
-
-        self.db_password_label.pack(side=tk.LEFT)
-        self.db_password_entry = ttk.Entry(
-            self.db_password_label_frame,
-            width=DEFAULT_TEXT_FIELD_WIDTH,
-            show="*",
-            textvariable=self.db_password,
-        )
-        self.db_password_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
+        self.db_engine_combbox.pack(side=tk.LEFT, expand=True, fill=tk.X)
 
         # DB Credentials Connection URL
         self.connection_url_label_frame = ttk.Frame(self)
@@ -693,9 +679,8 @@ class App(tk.Tk):
         self.saved_config.set_row_seperation(self.row_seperation.get())  # type: ignore
         self.saved_config.set_workbook_start_position(self.start_cell_position.get())
         self.saved_config.set_last_sql_queries(self.sql_queries)  # type: ignore
-        self.saved_config.set_db_username(self.db_username.get())
-        self.saved_config.set_db_password(self.db_password.get())
         self.saved_config.set_db_connection_url(self.connection_url.get())
+        self.saved_config.set_db_engine(self.db_engine_selection.get())
 
         if self.xls and not self.xls.saved:
             logging.log(logging.INFO, f"Saving Excel Sheet")
@@ -710,21 +695,23 @@ class App(tk.Tk):
         queries = [query for query in striped_queries.split(";") if query]
         connection_url = self.connection_url.get()
 
-        if not utils.is_valid_connection_url(connection_url):
+        db_engine = DatabaseEngine.from_string(self.db_engine_selection.get())
 
-            self.change_info_text(
-                f"Check Connection URL, It should be IP:PORT/SERVICE_NAME",
-                InfoType.ERROR,
-            )
-
-            return
-
-        hostname = connection_url.split(":")[0]
-        port, service_name = connection_url.split(":")[1].split("/")
-        conn_string = f"{self.db_username.get()}/{self.db_password.get()}@{hostname}:{port}/{service_name}"
-
+        match db_engine:
+            case DatabaseEngine.ORACLE:
+                assert utils.validate_string_with_regex(
+                    connection_url, ORACLE_URL_VALIDATION_REGEX
+                )
+            case DatabaseEngine.MYSQL:
+                assert utils.validate_string_with_regex(
+                    connection_url, MYSQL_URL_VALIDATION_REGEX
+                )
+            case DatabaseEngine.POSTGRESQL:
+                assert utils.validate_string_with_regex(
+                    connection_url, POSTGRESQL_URL_VALIDATION_REGEX
+                )
         if self.xls:
-            conn = get_connection(conn_string)
+            conn = create_connection(db_engine, connection_url)
             if conn:
                 res = execute_bulk_query(conn, queries)
                 if res:
@@ -740,10 +727,12 @@ class App(tk.Tk):
                     logging.log(
                         logging.ERROR, f"Query Execution Failed, {self.sql_queries}"
                     )
-                    self.change_info_text(f"Query Execution Failed", InfoType.ERROR)
+                    self.change_info_text("Query Execution Failed", InfoType.ERROR)
             else:
-                logging.log(logging.ERROR, f"Connection Creation Failed: {conn_string}")
-                self.change_info_text(f"Connection Creation Failed", InfoType.ERROR)
+                logging.log(
+                    logging.ERROR, f"Connection Creation Failed: {connection_url}"
+                )
+                self.change_info_text("Connection Creation Failed", InfoType.ERROR)
         else:
             logging.log(logging.ERROR, f"XLS not initialized yet")
             self.change_info_text("Process yet to start", InfoType.WARNING)

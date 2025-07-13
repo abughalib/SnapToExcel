@@ -117,16 +117,16 @@ class XlxsSheet:
                     except AttributeError:
                         logging.log(logging.ERROR, "Cannot result to string")
 
-                    cell_range = f"{self.start_column}{self.next_row}"
+                cell_range = f"{self.start_column}{self.next_row}"
 
-                    try:
-                        worksheet.write_row(cell_range, to_write)
+                try:
+                    worksheet.write_row(cell_range, to_write)
 
-                    except Exception as e: #type: ignore
-                        logging.log(logging.INFO, f"Failed to add data: {to_write}")
+                except Exception as e:  # type: ignore
+                    logging.log(logging.INFO, f"Failed to add data: {to_write}")
 
-                    self.next_row += 1
-                self.next_row += self.row_seperation
+                self.next_row += 1
+            self.next_row += self.row_seperation
 
     def _screenshot_row_height(self, height: int) -> int:
         return int(height // PIXEL_PER_ROW)
